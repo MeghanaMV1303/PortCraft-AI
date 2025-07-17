@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -124,7 +124,7 @@ function TestimonialDialog({
     defaultValues: { name: '', role: '', text: '', avatarUrl: '' },
   });
 
-  useState(() => {
+  useEffect(() => {
     if (editingTestimonial) {
       form.reset(editingTestimonial);
     } else {
