@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import type { Testimonial } from '@/lib/types';
+import { generateTestimonial } from '@/ai/flows/generate-testimonial';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -12,7 +13,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, Trash2, Edit } from 'lucide-react';
+import { PlusCircle, Trash2, Edit, Loader2, Sparkles } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 
@@ -21,6 +22,10 @@ const testimonialSchema = z.object({
   role: z.string().min(1, 'Role is required.'),
   text: z.string().min(10, 'Testimonial text must be at least 10 characters.'),
   avatarUrl: z.string().url('Please enter a valid URL.').optional().or(z.literal('')),
+});
+
+const aiSchema = z.object({
+    traits: z.string().min(10, 'Please provide some key traits or keywords.')
 });
 
 interface TestimonialsSectionProps {
@@ -60,7 +65,7 @@ export function TestimonialsSection({ testimonials, setTestimonials }: Testimoni
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
           <CardTitle>Testimonials</CardTitle>
-          <CardDescription>Add quotes from colleagues or clients.</CardDescription>
+          <CardDescription>Add quotes from colleagues or clients. Use AI to help write them.</CardDescription>
         </div>
         <Button onClick={openNewDialog}>
           <PlusCircle className="mr-2 h-4 w-4" />
@@ -117,11 +122,17 @@ function TestimonialDialog({
   updateTestimonial: (testimonial: Testimonial) => void;
   editingTestimonial: Testimonial | null;
 }) {
+  const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof testimonialSchema>>({
     resolver: zodResolver(testimonialSchema),
     defaultValues: { name: '', role: '', text: '', avatarUrl: '' },
+  });
+
+  const aiForm = useForm<z.infer<typeof aiSchema>>({
+      resolver: zodResolver(aiSchema),
+      defaultValues: { traits: '' },
   });
 
   useEffect(() => {
@@ -131,6 +142,31 @@ function TestimonialDialog({
       form.reset({ name: '', role: '', text: '', avatarUrl: '' });
     }
   }, [editingTestimonial, form]);
+
+  const handleGenerateTestimonial = async (values: z.infer<typeof aiSchema>) => {
+    const { name, role } = form.getValues();
+    if (!name || !role) {
+      toast({
+        variant: 'destructive',
+        title: 'Name and Role needed',
+        description: 'Please provide the reviewer\'s name and role to generate a testimonial.',
+      });
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      const result = await generateTestimonial({ name, role, traits: values.traits });
+      if (result && result.testimonialText) {
+        form.setValue('text', result.testimonialText);
+        toast({ title: 'Testimonial generated successfully!' });
+      }
+    } catch (error) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Failed to generate testimonial.' });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const onSubmit = (values: z.infer<typeof testimonialSchema>) => {
     if (editingTestimonial) {
@@ -149,28 +185,28 @@ function TestimonialDialog({
         <DialogHeader>
           <DialogTitle>{editingTestimonial ? 'Edit Testimonial' : 'Add Testimonial'}</DialogTitle>
           <DialogDescription>
-            Fill in the details for the testimonial.
+            Fill in the details for the testimonial, or use AI to generate one.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField control={form.control} name="name" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>Reviewer's Name</FormLabel>
                   <FormControl><Input placeholder="e.g. Jane Doe" {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
             )} />
             <FormField control={form.control} name="role" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Role / Company</FormLabel>
+                  <FormLabel>Reviewer's Role / Company</FormLabel>
                   <FormControl><Input placeholder="e.g. Project Manager at Acme Inc." {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
             )} />
              <FormField control={form.control} name="text" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Testimonial</FormLabel>
+                  <FormLabel>Testimonial Text</FormLabel>
                   <FormControl><Textarea rows={4} placeholder="Enter the testimonial text..." {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
@@ -188,6 +224,24 @@ function TestimonialDialog({
               <Button type="submit">Save Testimonial</Button>
             </DialogFooter>
           </form>
+        </Form>
+        <hr className="my-4" />
+        <Form {...aiForm}>
+            <form onSubmit={aiForm.handleSubmit(handleGenerateTestimonial)} className="space-y-4">
+                <FormField control={aiForm.control} name="traits" render={({ field }) => (
+                    <FormItem>
+                        <FormLabel className="text-base">Generate Testimonial with AI</FormLabel>
+                        <FormControl>
+                            <Textarea placeholder="Describe the person's key strengths or traits, e.g. 'great communicator, proactive, skilled in Python'" {...field} />
+                        </FormControl>
+                         <FormMessage />
+                    </FormItem>
+                )} />
+                <Button type="submit" variant="outline" size="sm" disabled={isGenerating}>
+                    {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                    Generate with AI
+                </Button>
+            </form>
         </Form>
       </DialogContent>
     </Dialog>
