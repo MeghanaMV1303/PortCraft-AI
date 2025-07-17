@@ -20,6 +20,14 @@ export interface Experience {
     description: string;
 }
 
+export interface Testimonial {
+    id: string;
+    name: string;
+    role: string;
+    text: string;
+    avatarUrl?: string;
+}
+
 export interface Contact {
     email: string;
     github: string;
@@ -28,5 +36,17 @@ export interface Contact {
 
 export interface ThemeSettings {
     colorScheme: 'light' | 'dark';
-    layout: 'standard' | 'minimal';
+    layout: 'standard' | 'minimal' | 'creative';
+}
+
+export interface PortfolioData {
+  name: string;
+  headline: string;
+  aboutMe: string;
+  projects: Project[];
+  skills: Skill[];
+  experiences: Experience[];
+  testimonials: Testimonial[];
+  contact: Contact;
+  theme: ThemeSettings;
 }

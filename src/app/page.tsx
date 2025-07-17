@@ -1,16 +1,21 @@
 'use client';
 
 import { useState } from 'react';
-import type { Project, Skill, Experience, Contact, ThemeSettings } from '@/lib/types';
+import { useRouter } from 'next/navigation';
+import type { PortfolioData, Project, Skill, Experience, Contact, ThemeSettings, Testimonial } from '@/lib/types';
 import { Header } from '@/components/header';
 import { AboutMeSection } from '@/components/about-me-section';
 import { ProjectsSection } from '@/components/projects-section';
 import { SkillsSection } from '@/components/skills-section';
 import { ExperienceSection } from '@/components/experience-section';
+import { TestimonialsSection } from '@/components/testimonials-section';
 import { ContactSection } from '@/components/contact-section';
+import { CoverLetterSection } from '@/components/cover-letter-section';
 import { ThemeSection } from '@/components/theme-section';
 import { PortfolioPreview } from '@/components/portfolio-preview';
-
+import { Button } from '@/components/ui/button';
+import { Rocket } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const initialProjects: Project[] = [
   {
@@ -57,7 +62,17 @@ const initialExperience: Experience[] = [
         period: '2018 - 2020',
         description: 'Assisted in the development of client websites, focusing on front-end features and responsive design. Gained experience with modern JavaScript frameworks.'
     }
-]
+];
+
+const initialTestimonials: Testimonial[] = [
+    {
+        id: '1',
+        name: 'Alex Johnson',
+        role: 'Project Manager at Tech Solutions Inc.',
+        text: 'An exceptional developer who is not only technically proficient but also a great team player. Consistently delivers high-quality work on time.',
+        avatarUrl: 'https://i.pravatar.cc/150?u=a042581f4e29026704d',
+    }
+];
 
 export default function DashboardPage() {
   const [aboutMe, setAboutMe] = useState(
@@ -66,6 +81,7 @@ export default function DashboardPage() {
   const [projects, setProjects] = useState<Project[]>(initialProjects);
   const [skills, setSkills] = useState<Skill[]>(initialSkills);
   const [experiences, setExperiences] = useState<Experience[]>(initialExperience);
+  const [testimonials, setTestimonials] = useState<Testimonial[]>(initialTestimonials);
   const [contact, setContact] = useState<Contact>({
       email: 'your.email@example.com',
       github: 'your-github',
@@ -76,7 +92,52 @@ export default function DashboardPage() {
   const [theme, setTheme] = useState<ThemeSettings>({
       colorScheme: 'dark',
       layout: 'standard'
-  })
+  });
+
+  const router = useRouter();
+  const { toast } = useToast();
+
+  const handlePublish = () => {
+    const portfolioData: PortfolioData = {
+      name,
+      headline,
+      aboutMe,
+      projects,
+      skills,
+      experiences,
+      testimonials,
+      contact,
+      theme,
+    };
+    try {
+      localStorage.setItem('portfolioData', JSON.stringify(portfolioData));
+      toast({
+        title: "Let's Go!",
+        description: "Your portfolio is ready in a new tab.",
+      });
+      window.open('/portfolio', '_blank');
+    } catch (error) {
+       toast({
+        variant: 'destructive',
+        title: 'Uh oh! Something went wrong.',
+        description: 'Could not save your portfolio data.',
+      });
+    }
+  };
+
+
+  const portfolioData = {
+    name,
+    headline,
+    aboutMe,
+    projects,
+    skills,
+    experiences,
+    testimonials,
+    contact,
+    theme,
+  };
+
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -84,7 +145,13 @@ export default function DashboardPage() {
       <main className="flex-1 container mx-auto p-4 md:p-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div className="space-y-8">
-            <h1 className="text-3xl md:text-4xl font-bold font-headline text-primary">Portfolio Dashboard</h1>
+            <div className="flex justify-between items-center">
+                <h1 className="text-3xl md:text-4xl font-bold font-headline text-primary">Portfolio Dashboard</h1>
+                <Button onClick={handlePublish}>
+                    <Rocket className="mr-2" />
+                    Publish
+                </Button>
+            </div>
             <AboutMeSection
               aboutMe={aboutMe}
               setAboutMe={setAboutMe}
@@ -93,26 +160,19 @@ export default function DashboardPage() {
               headline={headline}
               setHeadline={setHeadline}
             />
-             <ThemeSection theme={theme} setTheme={setTheme} />
+            <ThemeSection theme={theme} setTheme={setTheme} />
             <ProjectsSection projects={projects} setProjects={setProjects} />
             <SkillsSection skills={skills} setSkills={setSkills} />
             <ExperienceSection experiences={experiences} setExperiences={setExperiences} />
+            <TestimonialsSection testimonials={testimonials} setTestimonials={setTestimonials} />
             <ContactSection contact={contact} setContact={setContact} />
+            <CoverLetterSection portfolioData={portfolioData} />
           </div>
           <div className="relative">
             <div className="sticky top-8">
               <h2 className="text-2xl font-bold font-headline text-primary mb-4">Live Preview</h2>
               <div className="rounded-xl border bg-card text-card-foreground shadow-lg overflow-hidden h-[calc(100vh-8rem)]">
-                <PortfolioPreview
-                  name={name}
-                  headline={headline}
-                  aboutMe={aboutMe}
-                  projects={projects}
-                  skills={skills}
-                  experiences={experiences}
-                  contact={contact}
-                  theme={theme}
-                />
+                <PortfolioPreview {...portfolioData} />
               </div>
             </div>
           </div>

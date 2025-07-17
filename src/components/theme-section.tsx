@@ -62,6 +62,10 @@ export function ThemeSection({ theme, setTheme }: ThemeSectionProps) {
               <RadioGroupItem value="minimal" id="minimal-layout" />
               <Label htmlFor="minimal-layout">Minimal</Label>
             </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="creative" id="creative-layout" />
+              <Label htmlFor="creative-layout">Creative</Label>
+            </div>
           </RadioGroup>
         </div>
       </CardContent>
