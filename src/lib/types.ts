@@ -11,3 +11,22 @@ export interface Skill {
   id: string;
   name: string;
 }
+
+export interface Experience {
+    id: string;
+    role: string;
+    company: string;
+    period: string;
+    description: string;
+}
+
+export interface Contact {
+    email: string;
+    github: string;
+    linkedin: string;
+}
+
+export interface ThemeSettings {
+    colorScheme: 'light' | 'dark';
+    layout: 'standard' | 'minimal';
+}

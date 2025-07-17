@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Sparkles } from 'lucide-react';
+import { Label } from '@/components/ui/label';
 
 const aboutMeSchema = z.object({
   resumeText: z.string().min(50, 'Please provide more details from your resume.'),
@@ -123,9 +124,4 @@ export function AboutMeSection({ aboutMe, setAboutMe, name, setName, headline, s
       </CardContent>
     </Card>
   );
-}
-
-// Dummy Label component to avoid TS errors
-const Label: React.FC<React.LabelHTMLAttributes<HTMLLabelElement>> = (props) => {
-    return <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70" {...props} />
 }

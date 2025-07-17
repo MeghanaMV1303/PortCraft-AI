@@ -1,13 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import type { Project, Skill } from '@/lib/types';
+import type { Project, Skill, Experience, Contact, ThemeSettings } from '@/lib/types';
 import { Header } from '@/components/header';
 import { AboutMeSection } from '@/components/about-me-section';
 import { ProjectsSection } from '@/components/projects-section';
 import { SkillsSection } from '@/components/skills-section';
+import { ExperienceSection } from '@/components/experience-section';
+import { ContactSection } from '@/components/contact-section';
+import { ThemeSection } from '@/components/theme-section';
 import { PortfolioPreview } from '@/components/portfolio-preview';
-import { Separator } from '@/components/ui/separator';
+
 
 const initialProjects: Project[] = [
   {
@@ -39,14 +42,41 @@ const initialSkills: Skill[] = [
   { id: '8', name: 'Docker' },
 ];
 
+const initialExperience: Experience[] = [
+    {
+        id: '1',
+        role: 'Software Engineer',
+        company: 'Tech Solutions Inc.',
+        period: '2020 - Present',
+        description: 'Developed and maintained web applications using React and Node.js. Collaborated with cross-functional teams to deliver high-quality software products.'
+    },
+    {
+        id: '2',
+        role: 'Junior Developer',
+        company: 'Web Wizards LLC',
+        period: '2018 - 2020',
+        description: 'Assisted in the development of client websites, focusing on front-end features and responsive design. Gained experience with modern JavaScript frameworks.'
+    }
+]
+
 export default function DashboardPage() {
   const [aboutMe, setAboutMe] = useState(
     "I'm a passionate software developer with a knack for creating dynamic and intuitive web applications. I thrive on solving complex problems and turning ideas into reality through code."
   );
   const [projects, setProjects] = useState<Project[]>(initialProjects);
   const [skills, setSkills] = useState<Skill[]>(initialSkills);
+  const [experiences, setExperiences] = useState<Experience[]>(initialExperience);
+  const [contact, setContact] = useState<Contact>({
+      email: 'your.email@example.com',
+      github: 'your-github',
+      linkedin: 'your-linkedin'
+  });
   const [name, setName] = useState('Your Name');
   const [headline, setHeadline] = useState('Full-Stack Developer | AI Enthusiast');
+  const [theme, setTheme] = useState<ThemeSettings>({
+      colorScheme: 'dark',
+      layout: 'standard'
+  })
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -63,8 +93,11 @@ export default function DashboardPage() {
               headline={headline}
               setHeadline={setHeadline}
             />
+             <ThemeSection theme={theme} setTheme={setTheme} />
             <ProjectsSection projects={projects} setProjects={setProjects} />
             <SkillsSection skills={skills} setSkills={setSkills} />
+            <ExperienceSection experiences={experiences} setExperiences={setExperiences} />
+            <ContactSection contact={contact} setContact={setContact} />
           </div>
           <div className="relative">
             <div className="sticky top-8">
@@ -76,6 +109,9 @@ export default function DashboardPage() {
                   aboutMe={aboutMe}
                   projects={projects}
                   skills={skills}
+                  experiences={experiences}
+                  contact={contact}
+                  theme={theme}
                 />
               </div>
             </div>

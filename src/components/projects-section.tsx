@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import type { Project } from '@/lib/types';
 import { generateProjectDescription } from '@/ai/flows/generate-project-description';
+import { generateProjectImage } from '@/ai/flows/generate-project-image';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -13,7 +14,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, Trash2, Edit, Loader2, Sparkles, Link2 } from 'lucide-react';
+import { PlusCircle, Trash2, Edit, Loader2, Sparkles, Link2, Image as ImageIcon } from 'lucide-react';
 import Image from 'next/image';
 import { Badge } from './ui/badge';
 
@@ -60,7 +61,7 @@ export function ProjectsSection({ projects, setProjects }: ProjectsSectionProps)
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
           <CardTitle>Projects</CardTitle>
-          <CardDescription>Showcase your best work.</CardDescription>
+          <CardDescription>Showcase your best work. Use AI to generate images and descriptions.</CardDescription>
         </div>
         <Button onClick={openNewDialog}>
           <PlusCircle className="mr-2 h-4 w-4" />
@@ -135,7 +136,8 @@ function ProjectDialog({
   updateProject: (project: Project) => void;
   editingProject: Project | null;
 }) {
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [isGeneratingDesc, setIsGeneratingDesc] = useState(false);
+  const [isGeneratingImg, setIsGeneratingImg] = useState(false);
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof projectSchema>>({
@@ -167,7 +169,7 @@ function ProjectDialog({
       return;
     }
 
-    setIsGenerating(true);
+    setIsGeneratingDesc(true);
     try {
       const result = await generateProjectDescription({ title, techStack });
       if (result && result.description) {
@@ -177,9 +179,31 @@ function ProjectDialog({
     } catch (error) {
       toast({ variant: 'destructive', title: 'Error', description: 'Failed to generate description.' });
     } finally {
-      setIsGenerating(false);
+      setIsGeneratingDesc(false);
     }
   };
+
+  const handleGenerateImage = async () => {
+      if (!editingProject) return;
+      const { title, description } = form.getValues();
+      if (!title || !description) {
+          toast({ variant: 'destructive', title: 'Info needed', description: 'Please provide a title and description to generate an image.' });
+          return;
+      }
+      setIsGeneratingImg(true);
+      try {
+          const result = await generateProjectImage({ title, description });
+          if (result && result.imageUrl) {
+              updateProject({ ...editingProject, ...form.getValues(), imageUrl: result.imageUrl });
+              toast({ title: 'Image generated and saved!' });
+          }
+      } catch (error) {
+          toast({ variant: 'destructive', title: 'Error', description: 'Failed to generate image.' });
+      } finally {
+          setIsGeneratingImg(false);
+      }
+  };
+
 
   const onSubmit = (values: z.infer<typeof projectSchema>) => {
     if (editingProject) {
@@ -198,7 +222,7 @@ function ProjectDialog({
         <DialogHeader>
           <DialogTitle>{editingProject ? 'Edit Project' : 'Add Project'}</DialogTitle>
           <DialogDescription>
-            Fill in the details of your project. Use the AI generator for a quick description.
+            Fill in the details of your project. Use the AI generator for a quick description or a new image.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -243,10 +267,18 @@ function ProjectDialog({
                 </FormItem>
               )}
             />
-             <Button type="button" variant="outline" size="sm" onClick={handleGenerateDescription} disabled={isGenerating}>
-                {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-                Generate with AI
-            </Button>
+            <div className="flex gap-2">
+                <Button type="button" variant="outline" size="sm" onClick={handleGenerateDescription} disabled={isGeneratingDesc}>
+                    {isGeneratingDesc ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                    Generate Description
+                </Button>
+                {editingProject && (
+                    <Button type="button" variant="outline" size="sm" onClick={handleGenerateImage} disabled={isGeneratingImg}>
+                        {isGeneratingImg ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ImageIcon className="mr-2 h-4 w-4" />}
+                        Generate Image
+                    </Button>
+                )}
+            </div>
             <FormField
               control={form.control}
               name="link"
