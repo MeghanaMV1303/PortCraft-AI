@@ -16,6 +16,7 @@ import { PortfolioPreview } from '@/components/portfolio-preview';
 import { Button } from '@/components/ui/button';
 import { Rocket } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { usePortfolioStore } from '@/store/portfolio-store';
 
 const initialProjects: Project[] = [
   {
@@ -75,56 +76,50 @@ const initialTestimonials: Testimonial[] = [
 ];
 
 export default function DashboardPage() {
-  const [aboutMe, setAboutMe] = useState(
-    "I'm a passionate software developer with a knack for creating dynamic and intuitive web applications. I thrive on solving complex problems and turning ideas into reality through code."
-  );
-  const [projects, setProjects] = useState<Project[]>(initialProjects);
-  const [skills, setSkills] = useState<Skill[]>(initialSkills);
-  const [experiences, setExperiences] = useState<Experience[]>(initialExperience);
-  const [testimonials, setTestimonials] = useState<Testimonial[]>(initialTestimonials);
-  const [contact, setContact] = useState<Contact>({
-      email: 'your.email@example.com',
-      github: 'your-github',
-      linkedin: 'your-linkedin'
-  });
-  const [name, setName] = useState('Your Name');
-  const [headline, setHeadline] = useState('Full-Stack Developer | AI Enthusiast');
-  const [theme, setTheme] = useState<ThemeSettings>({
-      colorScheme: 'dark',
-      layout: 'standard'
-  });
-
   const router = useRouter();
   const { toast } = useToast();
 
-  const handlePublish = () => {
-    const portfolioData: PortfolioData = {
-      name,
-      headline,
-      aboutMe,
-      projects,
-      skills,
-      experiences,
-      testimonials,
-      contact,
-      theme,
-    };
-    try {
-      localStorage.setItem('portfolioData', JSON.stringify(portfolioData));
-      toast({
-        title: "Let's Go!",
-        description: "Your portfolio is ready in a new tab.",
-      });
-      window.open('/portfolio', '_blank');
-    } catch (error) {
-       toast({
-        variant: 'destructive',
-        title: 'Uh oh! Something went wrong.',
-        description: 'Could not save your portfolio data.',
-      });
-    }
-  };
+  const {
+    name, setName,
+    headline, setHeadline,
+    aboutMe, setAboutMe,
+    projects, setProjects,
+    skills, setSkills,
+    experiences, setExperiences,
+    testimonials, setTestimonials,
+    contact, setContact,
+    theme, setTheme,
+    setPortfolioData,
+  } = usePortfolioStore();
 
+  useState(() => {
+    setPortfolioData({
+      name: 'Your Name',
+      headline: 'Full-Stack Developer | AI Enthusiast',
+      aboutMe: "I'm a passionate software developer with a knack for creating dynamic and intuitive web applications. I thrive on solving complex problems and turning ideas into reality through code.",
+      projects: initialProjects,
+      skills: initialSkills,
+      experiences: initialExperience,
+      testimonials: initialTestimonials,
+      contact: {
+        email: 'your.email@example.com',
+        github: 'your-github',
+        linkedin: 'your-linkedin'
+      },
+      theme: {
+        colorScheme: 'dark',
+        layout: 'standard'
+      }
+    });
+  });
+
+  const handlePublish = () => {
+    toast({
+      title: "Let's Go!",
+      description: "Your portfolio is ready in a new tab.",
+    });
+    window.open('/portfolio', '_blank');
+  };
 
   const portfolioData = {
     name,
