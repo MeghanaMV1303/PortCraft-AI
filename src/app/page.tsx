@@ -13,6 +13,7 @@ import { ContactSection } from '@/components/contact-section';
 import { CoverLetterSection } from '@/components/cover-letter-section';
 import { ThemeSection } from '@/components/theme-section';
 import { PortfolioPreview } from '@/components/portfolio-preview';
+import { PortfolioEvaluatorSection } from '@/components/portfolio-evaluator-section';
 import { Button } from '@/components/ui/button';
 import { Rocket } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -161,6 +162,7 @@ export default function DashboardPage() {
             <ExperienceSection experiences={experiences} setExperiences={setExperiences} />
             <TestimonialsSection testimonials={testimonials} setTestimonials={setTestimonials} />
             <ContactSection contact={contact} setContact={setContact} />
+            <PortfolioEvaluatorSection portfolioData={portfolioData} />
             <CoverLetterSection portfolioData={portfolioData} />
           </div>
           <div className="relative">
